@@ -1,0 +1,66 @@
+Name intpoll;
+Partno G22V10#1;
+Revision;
+Date 09/1/2023;
+Designer Scott Baker;
+Company ;
+Location ;
+Assembly 8008 H8 CPU BOARD;
+Device G22V10;
+
+/* Inputs: */
+Pin 1 = !INTPOLL;
+Pin 2 = UART_RXRDY;
+Pin 3 = UART_TXE;
+Pin 4 = UART_TXRDY;
+Pin 5 = !EXT_INT;
+Pin 6 = NC4;
+Pin 7 = NC3;
+Pin 8 = NC2;
+Pin 9 = NC1;
+Pin 10 = NC0;
+Pin 11 = POR;
+Pin 13 = !INTJAM;
+
+/* Outputs:   */
+Pin 23 = D0;
+Pin 22 = D1;
+Pin 21 = D2;
+Pin 20 = D3;
+Pin 19 = D4;
+Pin 18 = D5;
+Pin 17 = D6;
+Pin 16 = D7;
+Pin 15 = !INTREQ;
+Pin 14 = NC5;
+
+INTREQ = INT1; /* for now, only pay attention to int1 */
+
+INT0 = 'b'0;
+INT1 = EXT_INT;
+INT2 = 'b'0;
+INT3 = 'b'0;
+INT4 = 'b'0;
+INT5 = 'b'0;
+INT6 = 'b'0;
+INT7 = 'b'0;
+
+/* only put the instruction on the data bus if intjam is true */
+
+D0.OE = INTPOLL;
+D1.OE = INTPOLL;
+D2.OE = INTPOLL;
+D3.OE = INTPOLL;
+D4.OE = INTPOLL;
+D5.OE = INTPOLL;
+D6.OE = INTPOLL;
+D7.OE = INTPOLL;
+
+D0 = INT0;
+D1 = INT1;
+D2 = INT2;
+D3 = INT3;
+D4 = INT4;
+D5 = INT5;
+D6 = INT6;
+D7 = INT7;

@@ -1,0 +1,75 @@
+/* Original by Jim Loos. Modified by smbaker for H8 project */
+
+Name bus;
+Partno G22V10#1;
+Revision;
+Date 09/1/2023;
+Designer Jim Loos and Scott Baker;
+Company ;
+Location ;
+Assembly 8008 H8 CPU BOARD;
+Device G22V10;
+
+/* Inputs: */
+Pin 1 = S0;         /* state signal from 8008 pin 13        */
+Pin 2 = S1;         /* state signal from 8008 pin 12        */
+Pin 3 = S2;         /* state signal from 8008 pin 11        */
+Pin 4 = SYNC;       /* SYNC signal from 8008 pin 14         */
+Pin 5 = CC1;        /* control code from 74LS273 #2 pin 5   */
+Pin 6 = CC2;        /* control code from 74LS273 #2 pin 2   */
+Pin 7 = NC4;
+Pin 8 = NC0;
+Pin 9 = NC1;
+Pin 10 = PHASE2;    /* PHASE2 clock input                   */
+Pin 11 = NC2;
+Pin 13 = NC3;
+
+/* Outputs:   */
+Pin 23 = LOSTIT;     /* Output to "Running" LED  ... was !RUNNING            */ 
+Pin 22 = ALL;        /* 74LS273 #1 Address Latch Low strobe  */
+Pin 21 = ALH;        /* 74LS273 #2 Address Latch High strobe */
+Pin 20 = !MEMRD;     /* Memory Read strobe                   */
+Pin 19 = !MEMWR;     /* Memory Write strobe                  */
+Pin 18 = !IORD;      /* IO Read to IO PLD                    */
+Pin 17 = !IOWR;      /* IO Write to IO PLD                   */
+Pin 16 = !INTACK;    /* Interrupt Ack to int controller PLD  */
+Pin 15 = !M1;        /* Simulated M1 signal                  */
+Pin 14 = DBD;        /* 74LS245 Data Bus Direction control   */
+
+/* states */
+t1      = !S2 &  S1 & !S0;      /* lower 8 bits of address out              */
+t1i     =  S2 &  S1 & !S0;      /* CPU interrupted                          */
+t2      =  S2 & !S1 & !S0;      /* higher 6 bits address, 2 bits control out*/    
+wait    = !S2 & !S1 & !S0;      /* external memory not ready                */
+t3      = !S2 & !S1 &  S0;      /* instruction or data fetch or data out    */
+stopped = !S2 &  S1 &  S0;      /* halt instruction received by CPU         */
+t4      =  S2 &  S1 &  S0;      /* execution of instruction                 */
+t5      =  S2 & !S1 &  S0;      /* execution of instruction                 */
+
+/* RUNNING = !stopped; */
+
+/* cycle types... */
+pci = !CC1 & !CC2;            /* Memory Read Instruction */
+pcr = !CC1 &  CC2;            /* Memory Read Additional */
+pcc =  CC1 & !CC2;            /* I/O Operation */
+pcw =  CC1 &  CC2;            /* Memory Write */
+
+/* address and data bus */
+DBD = (t1 # t1i # t2 # t3) & !SYNC;
+ALL  = (t1 # t1i) & !SYNC & PHASE2;
+ALH  = t2 & !SYNC & PHASE2;
+
+/* memory and I/O strobes */
+MEMRD = t3 & (pci # pcr) & SYNC;
+MEMWR = t3 & pcw & !SYNC & PHASE2;
+
+/* LOSTIT simulates a flipflop that is true if SYNC is released during IO Read and persists until the end of T3 */
+LOSTIT = (IORD & !SYNC) # (LOSTIT & t3); 
+
+IORD = t3 & pcc & SYNC & (!LOSTIT);
+IOWR = t3 & pcc & !SYNC & PHASE2;
+
+INTACK = t1i & !SYNC & PHASE2;
+M1 = t3 & pci & SYNC;
+
+

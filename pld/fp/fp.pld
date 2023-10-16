@@ -1,0 +1,64 @@
+Name fp;
+Partno G22V10#2;
+Revision;
+Date 09/1/2023;
+Designer Scott Baker;
+Company ;
+Location ;
+Assembly 8008 H8 CPU BOARD;
+Device G22V10;
+
+/* Inputs: */
+Pin 1  = !IOW;
+Pin 2  = !IOR;
+Pin 3  = A13;
+Pin 4  = A12;
+Pin 5  = A11;
+Pin 6  = A10;
+Pin 7  = A9;
+Pin 8  = TIMER;
+Pin 9  = CTL1;
+Pin 10 = CTL2;
+Pin 11 = !M1;
+Pin 13 = !RUNNING;
+
+/* Outputs:  */
+Pin 23 = !DISPMUX;
+Pin 22 = !KB_READ;
+Pin 21 = !RTC_CS;
+Pin 20 = RTC_ALE;
+Pin 19 = !RTC_IOW;
+Pin 18 = !SND_CS;
+Pin 17 = !LEDIN1;
+Pin 16 = RESV2;
+Pin 15 = FPINT_FIRED; /* internal state */
+Pin 14 = !FPINT;
+
+/* Input/Output logic: */
+in0  = !A13 & !A12;
+out0 = !A13 &  A12;
+out1 =  A13 & !A12;
+out2 =  A13 &  A12;
+
+device0 = !A11 & !A10 & !A9;
+device1 = !A11 & !A10 &  A9;
+device2 = !A11 &  A10 & !A9;
+device3 = !A11 &  A10 &  A9;
+device4 =  A11 & !A10 & !A9;
+device5 =  A11 & !A10 &  A9;
+device6 =  A11 &  A10 & !A9;
+device7 =  A11 &  A10 &  A9;
+
+DISPMUX = out2 & IOW;
+KB_READ = in0 & device4;
+
+RTC_ALE = IOW & out1 & device0;
+RTC_CS = IOW & ((out1 & device0) # (out1 & device5));
+RTC_IOW = IOW & out1 & device5;
+
+SND_CS = IOW & out1 & device1;
+/* FPINT = 'b'0; */
+
+FPINT_ACKED = out2 & IOW;                                  /* any write to the front panel will ack the interrupt */
+FPINT = (TIMER & !FPINT_FIRED) # (FPINT & !FPINT_ACKED);   /* interrupt on timer, hold it until acked */
+FPINT_FIRED = FPINT # (FPINT_FIRED & TIMER);               /* set on interrupted, reset when timer cycles */
