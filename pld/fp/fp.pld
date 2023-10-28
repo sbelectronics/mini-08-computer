@@ -17,20 +17,20 @@ Pin 5  = A11;
 Pin 6  = A10;
 Pin 7  = A9;
 Pin 8  = TIMER;
-Pin 9  = CTL1;
-Pin 10 = CTL2;
+Pin 9  = CTL1_FPINT_ENABLE;
+Pin 10 = !SND_WAIT; /* CTL2; */
 Pin 11 = !M1;
 Pin 13 = !RUNNING;
 
 /* Outputs:  */
 Pin 23 = !DISPMUX;
 Pin 22 = !KB_READ;
-Pin 21 = !RTC_CS;
+Pin 21 = !RTC_IOR;
 Pin 20 = RTC_ALE;
 Pin 19 = !RTC_IOW;
 Pin 18 = !SND_CS;
-Pin 17 = !LEDIN1;
-Pin 16 = RESV2;
+Pin 17 = !SND_LAT;
+Pin 16 = !LEDIN1;
 Pin 15 = FPINT_FIRED; /* internal state */
 Pin 14 = !FPINT;
 
@@ -49,16 +49,18 @@ device5 =  A11 & !A10 &  A9;
 device6 =  A11 &  A10 & !A9;
 device7 =  A11 &  A10 &  A9;
 
-DISPMUX = out2 & IOW;
-KB_READ = in0 & device4;
+DISPMUX = IOW & out2;
+KB_READ = IOR & in0 & device4;
 
 RTC_ALE = IOW & out1 & device0;
-RTC_CS = IOW & ((out1 & device0) # (out1 & device5));
+RTC_CS =  'b'1; /* (out1 & device0) # (out1 & device5) # (in0 & device5); */
 RTC_IOW = IOW & out1 & device5;
+RTC_IOR = IOR & in0 & device5;
 
-SND_CS = IOW & out1 & device1;
-/* FPINT = 'b'0; */
+SND_CS = (IOW & out1 & device1) # SND_WAIT;
+SND_LAT = (IOW & out1 & device1);
 
-FPINT_ACKED = out2 & IOW;                                  /* any write to the front panel will ack the interrupt */
-FPINT = (TIMER & !FPINT_FIRED) # (FPINT & !FPINT_ACKED);   /* interrupt on timer, hold it until acked */
+FPINT_ACKED = (IOR & in0 & device4);                       /* reading the keyboard will reset the interrupt */                         
+FPINT = CTL1_FPINT_ENABLE & 
+        ((TIMER & !FPINT_FIRED) # (FPINT & !FPINT_ACKED)); /* interrupt on timer, hold it until acked */
 FPINT_FIRED = FPINT # (FPINT_FIRED & TIMER);               /* set on interrupted, reset when timer cycles */
