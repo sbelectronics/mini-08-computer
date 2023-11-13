@@ -1,0 +1,125 @@
+Name intreg;
+Partno G22V10#1;
+Revision;
+Date 09/1/2023;
+Designer Scott Baker;
+Company ;
+Location ;
+Assembly 8008 H8 CPU BOARD;
+Device G22V10;
+
+/* Note that all inputs on GAL22V10D have weak pullups */
+
+/* Inputs: */
+Pin 1 = !INTPOLL;
+Pin 2 = !FPINT;
+Pin 3 = !EXT_INT1;
+Pin 4 = !EXT_INT2;
+Pin 5 = !EXT_INT3;
+Pin 6 = NC4;
+Pin 7 = NC3;
+Pin 8 = UART_RXRDY;
+Pin 9 = UART_TXE;
+Pin 10 = UART_TXRDY;
+Pin 11 = POR;
+Pin 13 = !INTJAM;
+
+/* Outputs:   */
+Pin 23 = D7;     /* these are reversed on the SBC board from thew H8-8008 board. Bad, Scott, Bad. */
+Pin 22 = D6;
+Pin 21 = D5;
+Pin 20 = D4;
+Pin 19 = D3;
+Pin 18 = D2;
+Pin 17 = D1;
+Pin 16 = D0;
+Pin 15 = !INTREQ;
+Pin 14 = OUTEN;  /* temporary */
+
+FIELD DATA = [D7..D0];
+
+INTREQ = INT1; /* for now, only pay attention to int1 */
+
+/* There are two cases where we want to put data out on the bus,
+ * when INTPOLL is true or when INTJAM is true. The OE for each
+ * data pin can't take that complex of a term, so we use a
+ * temporary.
+ */
+
+OUTEN = INTPOLL # INTJAM;
+
+D0.OE = OUTEN;
+D1.OE = OUTEN;
+D2.OE = OUTEN;
+D3.OE = OUTEN;
+D4.OE = OUTEN;
+D5.OE = OUTEN;
+D6.OE = OUTEN;
+D7.OE = OUTEN;
+
+/* Two Modes:
+ *
+ *  INTJAM
+ *     D7..D0 contain an RST instruction, and applies the highest
+ *     numbered interrupt as priority over lesser numbered interrupts.
+ *
+ *  INTPOLL
+ *     D7..D0 contain the values of INT7..INT0.
+ *
+ *  Whether INTPOLL or INTJAM are asserted depends on which of these
+ *  modes are executed. INTPOLL and INTJAM are also used (see OUTEN)
+ *  to enable D7..D0. 
+ *
+ *  Note that the equations below can be simplified, and are automatically
+ *  optimized by wincupl.
+ */
+
+INT0 = 'b'0;
+INT1 = EXT_INT1;
+INT2 = 'b'0;
+INT3 = 'b'0;
+INT4 = 'b'0;
+INT5 = 'b'0;
+INT6 = 'b'0;
+INT7 = 'b'0;
+ 
+
+D0 = (INTPOLL & INT0) # (INTJAM & 'b'1);
+D1 = (INTPOLL & INT1) # (INTJAM & 'b'0);
+D2 = (INTPOLL & INT2) # (INTJAM & 'b'1);
+D3 = (INTPOLL & INT3) # (INTJAM & (
+        (INT7) #
+        (INT5 & !INT6 & !INT7) #
+        (INT3 & !INT4 & !INT5 & !INT6 & !INT7) #
+        (INT1 & !INT2 & !INT3 & !INT4 & !INT5 & !INT6 & !INT7)
+     ));
+D4 = (INTPOLL & INT4) # (INTJAM & (
+        (INT7) #
+        (INT6 & !INT7) #
+        (INT3 & !INT4 & !INT5 & !INT6 & !INT7) #
+        (INT2 & !INT3 & !INT4 & !INT5 & !INT6 & !INT7)
+     ));
+D5 = (INTPOLL & INT5) # (INTJAM & (
+        (INT7) #
+        (INT6 & !INT7) #
+        (INT5 & !INT6 & !INT7) #
+        (INT4 & !INT5 & !INT6 & !INT7)
+     ));
+D6 = (INTPOLL & INT6) # (INTJAM & 'b'0);
+D7 = (INTPOLL & INT7) # (INTJAM & 'b'0);
+
+
+/* this was when I had the priority backwards...
+D3 = INT1 # 
+     (INT3 & !INT2 & !INT1) #
+     (INT5 & !INT4 & !INT3 & !INT2 & !INT1) #
+     (INT7 & !INT6 & !INT5 & !INT4 & !INT3 & !INT2 & !INT1);
+D4 = (INT2 & !INT1) # 
+     (INT3 & !INT2 & !INT1) # 
+     (INT6 & !INT5 & !INT4 & !INT3 & !INT2 & !INT1) #
+     (INT7 & !INT6 & !INT5 & !INT4 & !INT3 & !INT2 & !INT1);
+D5 = (INT4 & !INT3 & !INT2 & !INT1) #
+     (INT5 & !INT4 & !INT3 & !INT2 & !INT1) #
+     (INT6 & !INT5 & !INT4 & !INT3 & !INT2 & !INT1) #
+     (INT7 & !INT6 & !INT5 & !INT4 & !INT3 & !INT2 & !INT1);
+*/
