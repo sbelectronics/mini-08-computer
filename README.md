@@ -24,6 +24,20 @@ Also featured is an optional display board, which piggybacks on to the mini-08 a
 
 ![CPU Board](./pictures/mini-08-bottom-3840.jpg)
 
+Note that the 4th digit from the right is intentionally blank in these examples in software. The display is showing a
+split-octal address (two groups of 3 digits) followed by an octal value (3 digits). All 10 displays are usable if you
+decided to use alternate software.
+
+## Alternate Display Board
+
+In case the DM9368N drivers are hard to find or expensive, I have created a variant of the board that uses TIL311 integrated digits and drivers. They're also hard to
+find and also expensive!
+
+![Display Board](./pictures/mini-08-display-til311-3840.jpg)
+
+The color of the backlit keys depends on the color of the LEDs you chose. In the TIL311 example, I went with red LEDs for the keys to have a matching
+look. The LEDs are at the bottom center of the keys, so the keys are a little bit unevenly lit.
+
 ## Jumper Settings
 
 ### CPU Board
